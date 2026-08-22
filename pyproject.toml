@@ -24,6 +24,13 @@ dev = [
   "pytest-cov>=6.2,<7.0",
   "ruff>=0.12,<1.0",
 ]
+experiments = [
+  "accelerate>=1.10,<2.0",
+  "datasets>=4.0,<5.0",
+  "scikit-learn>=1.7,<2.0",
+  "torch>=2.7,<3.0",
+  "transformers>=4.55,<5.0",
+]
 
 [project.scripts]
 sagduyu = "sagduyu.cli:main"

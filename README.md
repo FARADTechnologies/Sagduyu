@@ -26,6 +26,8 @@ Gönderi öncesi uyarının kullanıcı seçimini koruyan ilk çalışma biçimi
 
 LEN-Small açıklanabilir taban ve GCN karşılaştırmasının veri ayrımı ile kabul kapısı [GNN deney protokolünde](docs/project/gnn-experiment.md) tanımlıdır.
 
+SentiTurca üzerinde BERTurk, Türkçe normalizasyon ve maskeleme dayanıklılığı karşılaştırması [Türkçe toksisite deney protokolünde](docs/project/turkish-toxicity-experiment.md) tanımlıdır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
