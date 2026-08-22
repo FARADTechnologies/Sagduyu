@@ -39,6 +39,14 @@ PowerShell kullanıyorsanız etkinleştirme komutu `.venv\Scripts\Activate.ps1` 
 
 API belgesi servis başladıktan sonra `http://127.0.0.1:8000/docs` adresindedir.
 
+API, web, PostgreSQL ve Neo4j servislerini birlikte başlatmak için örnek ortam dosyasını kopyalayıp yerel parolaları değiştirin, ardından:
+
+```bash
+docker compose up --build
+```
+
+Web arayüzü `http://127.0.0.1:5173`, API belgesi `http://127.0.0.1:8000/docs`, Neo4j Browser ise `http://127.0.0.1:7474` adresinde açılır. Docker kullanılmadığında API, kalıcı veri yazmayan bellek deposuyla çalışmaya devam eder.
+
 Moderatör arayüzünü ayrı bir terminalde başlatmak için:
 
 ```bash

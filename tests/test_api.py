@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from sagduyu.api import create_app
@@ -10,7 +11,12 @@ def test_health_and_scenario_catalog() -> None:
         scenarios = client.get("/api/v1/scenarios")
 
     assert health.status_code == 200
-    assert health.json() == {"status": "ok", "engine_version": "0.1.0"}
+    assert health.json() == {
+        "status": "ok",
+        "engine_version": "0.1.0",
+        "moderation_store": "memory",
+        "graph_store": "disabled",
+    }
     assert scenarios.status_code == 200
     assert scenarios.json() == [
         "announced-campaign",
@@ -130,3 +136,10 @@ def test_courtesy_check_explains_masking_and_preserves_user_choice() -> None:
     assert body["user_may_continue"] is True
     assert body["matches"][0]["canonical_form"] == "salak"
     assert body["method"] == "transparent_demo_baseline_v1"
+
+
+def test_empty_cors_configuration_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SAGDUYU_CORS_ORIGINS", ", ,")
+
+    with pytest.raises(ValueError, match="at least one origin"):
+        create_app()

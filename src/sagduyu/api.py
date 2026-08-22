@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from sagduyu.engine import CoordinationEngine
+from sagduyu.graph_store import GraphEvidenceWriter
 from sagduyu.models import (
     CoordinationAlert,
     EventAnalysisRequest,
@@ -13,27 +18,37 @@ from sagduyu.models import (
     ReplayResult,
     ReviewStatus,
 )
+from sagduyu.persistence import build_graph_writer, build_moderation_store
 from sagduyu.scenarios import SCENARIOS, load_scenario
-from sagduyu.store import AlertNotFoundError, InMemoryModerationStore
+from sagduyu.store import AlertNotFoundError, ModerationStore
 from sagduyu.text_safety import CourtesyAssessment, CourtesyChecker, CourtesyCheckRequest
 
 
 def create_app(
     *,
     engine: CoordinationEngine | None = None,
-    store: InMemoryModerationStore | None = None,
+    store: ModerationStore | None = None,
+    graph_writer: GraphEvidenceWriter | None = None,
 ) -> FastAPI:
     engine_instance = engine or CoordinationEngine()
-    store_instance = store or InMemoryModerationStore()
+    store_instance = store or build_moderation_store()
+    graph_writer_instance = graph_writer or build_graph_writer()
     courtesy_checker = CourtesyChecker()
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        yield
+        graph_writer_instance.close()
+
     app = FastAPI(
         title="SAĞDUYU Moderasyon API",
         version="0.1.0",
         description="Açıklanabilir koordineli manipülasyon karar destek API'si.",
+        lifespan=lifespan,
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=_cors_origins(),
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -41,10 +56,16 @@ def create_app(
 
     app.state.engine = engine_instance
     app.state.store = store_instance
+    app.state.graph_writer = graph_writer_instance
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
-        return {"status": "ok", "engine_version": engine_instance.version}
+        return {
+            "status": "ok",
+            "engine_version": engine_instance.version,
+            "moderation_store": store_instance.mode,
+            "graph_store": graph_writer_instance.mode,
+        }
 
     @app.get("/api/v1/scenarios", tags=["replay"])
     def list_scenarios() -> list[str]:
@@ -66,6 +87,7 @@ def create_app(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
         alerts = engine_instance.analyze(events)
         store_instance.upsert_alerts(alerts)
+        graph_writer_instance.write_alerts(alerts)
         return ReplayResult(
             scenario=scenario,
             event_count=len(events),
@@ -81,6 +103,7 @@ def create_app(
     def analyze_events(request: EventAnalysisRequest) -> EventAnalysisResult:
         alerts = engine_instance.analyze(request.events)
         store_instance.upsert_alerts(alerts)
+        graph_writer_instance.write_alerts(alerts)
         return EventAnalysisResult(
             source_id=request.source_id,
             event_count=len(request.events),
@@ -145,6 +168,16 @@ def create_app(
             ) from error
 
     return app
+
+
+def _cors_origins() -> list[str]:
+    configured = os.getenv("SAGDUYU_CORS_ORIGINS")
+    if not configured:
+        return ["http://localhost:5173", "http://127.0.0.1:5173"]
+    origins = [origin.strip() for origin in configured.split(",") if origin.strip()]
+    if not origins:
+        raise ValueError("SAGDUYU_CORS_ORIGINS must include at least one origin")
+    return origins
 
 
 app = create_app()
