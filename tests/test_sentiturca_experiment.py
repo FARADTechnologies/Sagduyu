@@ -41,3 +41,5 @@ def test_cloud_notebook_contains_no_saved_execution_output() -> None:
 
     assert '"execution_count": null' in notebook
     assert '"outputs": []' in notebook
+    assert "/kaggle/working" in notebook
+    assert "/content" in notebook
