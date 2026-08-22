@@ -33,6 +33,16 @@ PowerShell kullanıyorsanız etkinleştirme komutu `.venv\Scripts\Activate.ps1` 
 
 API belgesi servis başladıktan sonra `http://127.0.0.1:8000/docs` adresindedir.
 
+Moderatör arayüzünü ayrı bir terminalde başlatmak için:
+
+```bash
+cd apps/web
+pnpm install
+pnpm dev
+```
+
+Arayüz `http://127.0.0.1:5173` adresinde açılır ve varsayılan olarak yerel API'ye bağlanır.
+
 Örnek koordineli ve organik senaryolar komut satırından çalıştırılabilir:
 
 ```bash

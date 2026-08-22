@@ -1,0 +1,61 @@
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import App from "./App";
+
+const alert = {
+  alert_id: "alert_demo",
+  created_at: "2025-06-15T09:12:00Z",
+  window_start: "2025-06-15T09:00:00Z",
+  window_end: "2025-06-15T09:12:00Z",
+  risk_score: 82,
+  risk_level: "high",
+  summary: "8 hesap, 24 olay ve 3 ortak hedefte koordinasyon adayı oluşturdu.",
+  account_ids: ["account_1", "account_2", "account_3"],
+  event_ids: ["event_1", "event_2", "event_3"],
+  signals: [
+    { key: "temporal", label: "Eşzamanlılık", value: 0.9, weight: 0.22, contribution: 19.8, explanation: "Kısa zaman aralığı." },
+  ],
+  targets: [{ key: "tag:ortakcagri", event_count: 3, account_count: 3 }],
+  graph: { node_count: 3, edge_count: 3, density: 1, strongest_pairs: [] },
+  status: "pending",
+  synthetic: true,
+  engine_version: "0.1.0",
+};
+
+describe("moderasyon merkezi", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      if (init?.body) {
+        return new Response(JSON.stringify({ status: "confirmed" }), { status: 201 });
+      }
+      return new Response(JSON.stringify({ scenario: "coordinated-campaign", event_count: 24, alert_count: 1, alerts: [alert] }), { status: 200 });
+    }));
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it("alarm kanıtlarını ve insan kararı uyarısını gösterir", async () => {
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Koordinasyon adayı" })).toBeInTheDocument();
+    expect(screen.getByText("Eşzamanlılık")).toBeInTheDocument();
+    expect(screen.getByText(/yaptırım otomatik uygulanmaz/i)).toBeInTheDocument();
+  });
+
+  it("gerekçeli moderatör kararını kaydeder", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Koordinasyon adayı" });
+    await user.type(screen.getByLabelText("Karar gerekçesi"), "Sinyaller birlikte değerlendirildi.");
+    await user.click(screen.getByRole("button", { name: "Gerekçeli kararı kaydet" }));
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("denetim kaydına"));
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+});
