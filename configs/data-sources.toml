@@ -1,0 +1,23 @@
+[ephemeral_annotations]
+description = "Ephemeral Astroturfing 2019 saldırı etiketleri"
+url = "https://raw.githubusercontent.com/tugrulz/EphemeralAstroturfing/master/2019/attack_annotations.csv"
+filename = "ephemeral_attack_annotations.csv"
+license = "Açık lisans belirtilmemiş; araştırmacıyla iletişim ve atıf gerekli"
+
+[ephemeral_trends]
+description = "Ephemeral Astroturfing 2019 sahte gündem etiketleri"
+url = "https://raw.githubusercontent.com/tugrulz/EphemeralAstroturfing/master/2019/fake_trends.csv"
+filename = "ephemeral_fake_trends.csv"
+license = "Açık lisans belirtilmemiş; araştırmacıyla iletişim ve atıf gerekli"
+
+[len_metadata]
+description = "LEN grafik metadata kaydı"
+url = "https://erdemub.github.io/large-engagement-network/data/metadata_graph.json"
+filename = "len_metadata_graph.json"
+license = "CC BY; yayın ve veri sayfası atfı gerekli"
+
+[len_small]
+description = "LEN-Small kampanya ve organik etkileşim grafikleri"
+url = "https://cse.buffalo.edu/~erdem/small_encoder_final.tar"
+filename = "len_small.tar"
+license = "CC BY; yayın ve veri sayfası atfı gerekli"

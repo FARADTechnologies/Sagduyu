@@ -25,6 +25,7 @@ dev = [
 
 [project.scripts]
 sagduyu = "sagduyu.cli:main"
+sagduyu-evaluate = "sagduyu.evaluation_cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sagduyu"]
@@ -32,6 +33,7 @@ packages = ["src/sagduyu"]
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers --disable-warnings"
 testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
@@ -44,3 +46,4 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 python_version = "3.12"
 strict = true
 packages = ["sagduyu"]
+mypy_path = ["."]
