@@ -6,6 +6,7 @@ import json
 import platform
 import random
 import time
+from importlib.metadata import version
 from pathlib import Path
 from statistics import mean
 
@@ -217,7 +218,11 @@ def main() -> None:
         "environment": {
             "python": platform.python_version(),
             "torch": torch.__version__,
+            "torch_geometric": version("torch-geometric"),
+            "scikit_learn": version("scikit-learn"),
+            "networkx": version("networkx"),
             "devices": sorted(devices),
+            "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         },
         "runs": runs,
         "mean": {
