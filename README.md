@@ -28,6 +28,10 @@ LEN-Small açıklanabilir taban ve GCN karşılaştırmasının veri ayrımı il
 
 SentiTurca üzerinde BERTurk, Türkçe normalizasyon ve maskeleme dayanıklılığı karşılaştırması [Türkçe toksisite deney protokolünde](docs/project/turkish-toxicity-experiment.md) tanımlıdır.
 
+Gerçek LEN-Small ve SentiTurca koşularından gelen seed, ortam, SHA, metrik ve
+ürün kararları [doğrulanmış model seçim sonuçlarında](docs/project/verified-results.md)
+kayıtlıdır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
