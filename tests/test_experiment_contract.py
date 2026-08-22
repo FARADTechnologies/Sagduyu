@@ -19,6 +19,10 @@ def test_len_notebook_has_no_stored_results_and_runs_versioned_experiment() -> N
     assert "len_gnn_challenger.py" in code
     assert "11,23,37" in code
     assert "len_results.json" in code
+    assert "https://cse.buffalo.edu/~erdem/small_encoder_final.tar" in code
+    assert "--continue-at" in code
+    assert "Path('/kaggle/working')" in code
+    assert "sys.executable" in code
 
 
 def test_gnn_acceptance_thresholds_are_locked() -> None:
@@ -26,3 +30,6 @@ def test_gnn_acceptance_thresholds_are_locked() -> None:
 
     assert "GNN_MIN_MACRO_F1_GAIN = 0.02" in source
     assert "GNN_MAX_FPR_INCREASE = 0.01" in source
+    assert 'version("torch-geometric")' in source
+    assert 'version("scikit-learn")' in source
+    assert 'version("networkx")' in source

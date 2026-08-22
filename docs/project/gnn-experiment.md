@@ -1,6 +1,6 @@
 # LEN GNN Rakip Deneyi
 
-`notebooks/LEN_GNN_Challenger.ipynb`, LEN-Small üzerinde açıklanabilir toplu graf özellikleri tabanı ile iki katmanlı GCN modelini karşılaştırır. Notebook Colab, Kaggle veya gerekli Python paketlerinin kurulabildiği yerel bir ortamda çalışabilir.
+`notebooks/LEN_GNN_Challenger.ipynb`, LEN-Small üzerinde açıklanabilir toplu graf özellikleri tabanı ile iki katmanlı GCN modelini karşılaştırır. Notebook Colab veya Kaggle çalışma alanını otomatik seçer, resmî LEN-Small arşivini kaldığı yerden indirebilir ve gerekli Python paketlerini kurar.
 
 ## Protokol
 
@@ -9,7 +9,7 @@
 - Her tekrarda sınıf oranını koruyan %25 holdout oluşturulur.
 - Her iki model aynı train/test grafiklerini kullanır.
 - Makro-F1, kesinlik, duyarlılık, organik yanlış pozitif oranı ve grafik başına gecikme kaydedilir.
-- Sonuç LEN-Small arşivinin SHA-256 özeti ve ortam sürümleriyle JSON'a yazılır.
+- Sonuç LEN-Small arşivinin SHA-256 özeti; Python, PyTorch, PyTorch Geometric, scikit-learn ve NetworkX sürümleri; cihaz ve GPU bilgisiyle JSON'a yazılır.
 
 ## Kabul kapısı
 
