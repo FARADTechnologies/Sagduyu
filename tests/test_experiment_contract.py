@@ -1,6 +1,10 @@
 import json
 from pathlib import Path
 
+import pytest
+
+from experiments.len_gnn_challenger import resolve_filename_label
+
 
 def test_len_experiment_script_is_valid_python() -> None:
     path = Path("experiments/len_gnn_challenger.py")
@@ -23,6 +27,8 @@ def test_len_notebook_has_no_stored_results_and_runs_versioned_experiment() -> N
     assert "--continue-at" in code
     assert "Path('/kaggle/working')" in code
     assert "sys.executable" in code
+    assert "_noncampaign_fulldata" in code
+    assert "graph_directories" in code
 
 
 def test_gnn_acceptance_thresholds_are_locked() -> None:
@@ -33,3 +39,21 @@ def test_gnn_acceptance_thresholds_are_locked() -> None:
     assert 'version("torch-geometric")' in source
     assert 'version("scikit-learn")' in source
     assert 'version("networkx")' in source
+    assert 'node_link_graph(raw, edges="links")' in source
+
+
+@pytest.mark.parametrize(
+    ("stem", "expected"),
+    [
+        ("#Ornek_noncampaign_fulldata", 0),
+        ("#Ornek___2023-05-13_campaign_fulldata", 1),
+        ("Ornek__2023-03-26_campaign_fulldata", 1),
+    ],
+)
+def test_official_len_filename_suffix_resolves_label(stem: str, expected: int) -> None:
+    assert resolve_filename_label(stem) == expected
+
+
+def test_unknown_len_filename_is_not_silently_labeled() -> None:
+    with pytest.raises(KeyError):
+        resolve_filename_label("unknown_graph")
