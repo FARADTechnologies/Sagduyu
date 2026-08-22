@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 
-import { replayScenario, submitDecision } from "./api";
-import type { CoordinationAlert, ReviewStatus } from "./types";
+import { checkCourtesy, replayScenario, submitDecision } from "./api";
+import type { CoordinationAlert, CourtesyAssessment, ReviewStatus } from "./types";
 
 const SCENARIOS = [
   { value: "coordinated-campaign", label: "Koordineli paylaş-sil ağı" },
@@ -52,6 +52,9 @@ function App() {
   );
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
+  const [courtesyText, setCourtesyText] = useState("Bu fikri s 4 l 4 k buluyorum.");
+  const [courtesyResult, setCourtesyResult] = useState<CourtesyAssessment | null>(null);
+  const [checkingCourtesy, setCheckingCourtesy] = useState(false);
 
   const selected = useMemo(
     () => alerts.find((alert) => alert.alert_id === selectedId) ?? alerts[0] ?? null,
@@ -98,6 +101,20 @@ function App() {
     }
   }
 
+  async function handleCourtesyCheck(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!courtesyText.trim()) return;
+    setCheckingCourtesy(true);
+    setError("");
+    try {
+      setCourtesyResult(await checkCourtesy(courtesyText.trim()));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Nezaket kontrolü tamamlanamadı.");
+    } finally {
+      setCheckingCourtesy(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -137,6 +154,38 @@ function App() {
 
         {error && <div className="message message--error" role="alert">{error}</div>}
         {notice && <div className="message message--success" role="status">{notice}</div>}
+
+        <section className="courtesy-card" aria-labelledby="courtesy-title">
+          <div className="courtesy-copy">
+            <p className="eyebrow">GÖNDERİ ÖNCESİ NEZAKET KATMANI</p>
+            <h2 id="courtesy-title">Paylaşmadan önce bir kez daha bakın.</h2>
+            <p>Maskeleme girişimlerini açıklar, kullanıcıyı uyarır; metni engellemez veya otomatik yaptırım uygulamaz.</p>
+          </div>
+          <form onSubmit={handleCourtesyCheck}>
+            <label htmlFor="courtesy-text">Gönderi taslağı</label>
+            <div className="courtesy-input">
+              <textarea id="courtesy-text" value={courtesyText} onChange={(event) => { setCourtesyText(event.target.value); setCourtesyResult(null); }} required maxLength={5000} />
+              <button type="submit" disabled={checkingCourtesy}>{checkingCourtesy ? "Kontrol ediliyor…" : "Nezaket kontrolü"}</button>
+            </div>
+          </form>
+          {courtesyResult && (
+            <div className={`courtesy-result courtesy-result--${courtesyResult.level}`} role="status">
+              <div>
+                <span className="courtesy-score">{Math.round(courtesyResult.risk_score)}</span>
+                <p><strong>{courtesyResult.should_warn ? courtesyResult.warning : "Belirgin bir nezaket riski bulunmadı."}</strong><small>{courtesyResult.disclaimer}</small></p>
+              </div>
+              {courtesyResult.matches.length > 0 && (
+                <div className="match-list">
+                  {courtesyResult.matches.map((match) => <span key={match.canonical_form}><b>{match.canonical_form}</b>{match.category}</span>)}
+                </div>
+              )}
+              <div className="courtesy-actions">
+                <button type="button" onClick={() => setCourtesyResult(null)}>Metni düzenle</button>
+                <button type="button" onClick={() => setNotice("Kullanıcı tercihi korundu; demo gönderimi engellenmedi.")}>Yine de devam et</button>
+              </div>
+            </div>
+          )}
+        </section>
 
         <div className="workspace">
           <aside className="queue" aria-label="Alarm kuyruğu">

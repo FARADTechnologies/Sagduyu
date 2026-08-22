@@ -26,7 +26,21 @@ const alert = {
 
 describe("moderasyon merkezi", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes("courtesy-check")) {
+        return new Response(JSON.stringify({
+          normalized_text: "bu fikir salak",
+          transformations: ["separated_letters", "leetspeak"],
+          risk_score: 58,
+          level: "review",
+          should_warn: true,
+          warning: "Bu ifade incitici algılanabilir.",
+          matches: [{ canonical_form: "salak", category: "kişiye yönelik aşağılama", contribution: 58 }],
+          user_may_continue: true,
+          method: "transparent_demo_baseline_v1",
+          disclaimer: "Demo tabanıdır.",
+        }), { status: 200 });
+      }
       if (init?.body) {
         return new Response(JSON.stringify({ status: "confirmed" }), { status: 201 });
       }
@@ -57,5 +71,19 @@ describe("moderasyon merkezi", () => {
 
     await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("denetim kaydına"));
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("nezaket uyarısını açıklar ve kullanıcı tercihini korur", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Koordinasyon adayı" });
+    await user.click(screen.getByRole("button", { name: "Nezaket kontrolü" }));
+
+    expect(await screen.findByText("kişiye yönelik aşağılama")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Yine de devam et" }));
+    expect(
+      screen.getByText("Kullanıcı tercihi korundu; demo gönderimi engellenmedi."),
+    ).toBeInTheDocument();
   });
 });

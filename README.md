@@ -22,6 +22,8 @@ Model karşılaştırmalarında kullanılan ayrım, ölçüm ve sonuç yayınlam
 
 Türkçe karakter maskelemesine karşı kullanılan kanonikleştirme adımları ve sınırları [metin normalizasyonu belgesinde](docs/project/text-normalization.md) açıklanır.
 
+Gönderi öncesi uyarının kullanıcı seçimini koruyan ilk çalışma biçimi [nezaket katmanı demo tabanında](docs/project/courtesy-baseline.md) açıklanır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.

@@ -15,6 +15,7 @@ from sagduyu.models import (
 )
 from sagduyu.scenarios import SCENARIOS, load_scenario
 from sagduyu.store import AlertNotFoundError, InMemoryModerationStore
+from sagduyu.text_safety import CourtesyAssessment, CourtesyChecker, CourtesyCheckRequest
 
 
 def create_app(
@@ -24,6 +25,7 @@ def create_app(
 ) -> FastAPI:
     engine_instance = engine or CoordinationEngine()
     store_instance = store or InMemoryModerationStore()
+    courtesy_checker = CourtesyChecker()
     app = FastAPI(
         title="SAĞDUYU Moderasyon API",
         version="0.1.0",
@@ -47,6 +49,14 @@ def create_app(
     @app.get("/api/v1/scenarios", tags=["replay"])
     def list_scenarios() -> list[str]:
         return sorted(SCENARIOS)
+
+    @app.post(
+        "/api/v1/text/courtesy-check",
+        response_model=CourtesyAssessment,
+        tags=["text-safety"],
+    )
+    def check_courtesy(request: CourtesyCheckRequest) -> CourtesyAssessment:
+        return courtesy_checker.assess(request.text)
 
     @app.post("/api/v1/replays/{scenario}", response_model=ReplayResult, tags=["replay"])
     def replay_scenario(scenario: str) -> ReplayResult:

@@ -48,6 +48,27 @@ h1 { font: 800 clamp(28px, 4vw, 48px)/1.06 Arial, sans-serif; letter-spacing: -.
 .message { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
 .message--error { background: rgba(255, 107, 107, .1); border: 1px solid rgba(255, 107, 107, .35); color: #ffb4b4; }
 .message--success { background: rgba(99, 230, 190, .08); border: 1px solid rgba(99, 230, 190, .32); color: #9df2d8; }
+.courtesy-card { display: grid; grid-template-columns: .75fr 1.25fr; gap: 24px 34px; padding: 24px; margin-bottom: 16px; border: 1px solid #284252; border-radius: 14px; background: linear-gradient(135deg, rgba(17, 41, 51, .9), rgba(10, 24, 34, .92)); }
+.courtesy-copy h2 { font: 700 20px Arial, sans-serif; margin-bottom: 7px; }
+.courtesy-copy > p:last-child { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0; }
+.courtesy-card form > label { display: block; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 7px; }
+.courtesy-input { display: flex; gap: 8px; }
+.courtesy-input textarea { flex: 1; min-height: 74px; resize: vertical; color: var(--ink); background: #08151e; border: 1px solid var(--line); border-radius: 8px; padding: 11px; font-size: 12px; }
+.courtesy-input button { align-self: stretch; border: 0; border-radius: 8px; padding: 0 16px; color: #062219; background: var(--accent); font-weight: 700; }
+.courtesy-input button:disabled { opacity: .5; }
+.courtesy-result { grid-column: 1 / -1; padding: 16px; border-radius: 10px; border: 1px solid var(--line); background: #091721; }
+.courtesy-result > div:first-child { display: flex; gap: 13px; align-items: center; }
+.courtesy-result p, .courtesy-result small { display: block; margin: 0; }
+.courtesy-result p { font-size: 12px; }
+.courtesy-result small { color: var(--muted); font-size: 9px; margin-top: 5px; }
+.courtesy-score { flex: 0 0 45px; height: 45px; display: grid; place-items: center; border-radius: 50%; color: var(--accent); border: 2px solid var(--accent); font: 700 17px Arial, sans-serif; }
+.courtesy-result--review .courtesy-score, .courtesy-result--high_risk .courtesy-score { color: var(--orange); border-color: var(--orange); }
+.match-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.match-list span { display: flex; gap: 7px; padding: 6px 8px; color: var(--muted); background: #142631; border-radius: 6px; font-size: 10px; }
+.match-list b { color: var(--orange); font-family: monospace; }
+.courtesy-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.courtesy-actions button { border: 1px solid var(--line); border-radius: 7px; padding: 8px 11px; color: #b9cad3; background: transparent; font-size: 10px; }
+.courtesy-actions button:last-child { color: var(--ink); background: #17303d; }
 .workspace { display: grid; grid-template-columns: 330px minmax(0, 1fr); background: rgba(9, 22, 32, .8); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; box-shadow: 0 30px 90px rgba(0, 0, 0, .28); }
 .queue { border-right: 1px solid var(--line); background: rgba(7, 17, 26, .5); min-height: 720px; }
 .section-heading, .panel-title { display: flex; align-items: center; justify-content: space-between; }
@@ -161,6 +182,8 @@ legend, .reason-field { color: var(--muted); font-size: 10px; font-weight: 700; 
 @media (max-width: 760px) {
   main { width: min(100% - 24px, 1480px); padding-top: 28px; }
   .intro { align-items: stretch; flex-direction: column; }
+  .courtesy-card { grid-template-columns: 1fr; }
+  .courtesy-result { grid-column: 1; }
   .workspace { display: block; }
   .queue { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .evidence-header { align-items: flex-start; }
@@ -173,6 +196,8 @@ legend, .reason-field { color: var(--muted); font-size: 10px; font-weight: 700; 
   .topbar { height: 64px; padding: 0 14px; }
   .system-state { font-size: 0; }
   .scenario-control > div { flex-direction: column; }
+  .courtesy-input { flex-direction: column; }
+  .courtesy-input button { min-height: 42px; }
   .metric-grid { grid-template-columns: 1fr 1fr; }
   .evidence { padding: 16px; }
   .evidence-header { display: block; }

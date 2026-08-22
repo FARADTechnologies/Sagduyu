@@ -115,3 +115,18 @@ def test_pending_or_empty_decision_is_rejected() -> None:
 
     assert pending.status_code == 422
     assert short_reason.status_code == 422
+
+
+def test_courtesy_check_explains_masking_and_preserves_user_choice() -> None:
+    with TestClient(create_app()) as client:
+        response = client.post(
+            "/api/v1/text/courtesy-check",
+            json={"text": "Bu yorum s.4.l.4.k görünüyor."},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["should_warn"] is True
+    assert body["user_may_continue"] is True
+    assert body["matches"][0]["canonical_form"] == "salak"
+    assert body["method"] == "transparent_demo_baseline_v1"

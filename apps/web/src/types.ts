@@ -47,3 +47,16 @@ export interface ReplayResult {
   alert_count: number;
   alerts: CoordinationAlert[];
 }
+
+export interface CourtesyAssessment {
+  normalized_text: string;
+  transformations: string[];
+  risk_score: number;
+  level: "clear" | "review" | "high_risk";
+  should_warn: boolean;
+  warning: string | null;
+  matches: { canonical_form: string; category: string; contribution: number }[];
+  user_may_continue: boolean;
+  method: string;
+  disclaimer: string;
+}

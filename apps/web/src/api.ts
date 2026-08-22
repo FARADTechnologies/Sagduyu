@@ -1,4 +1,9 @@
-import type { CoordinationAlert, ReplayResult, ReviewStatus } from "./types";
+import type {
+  CoordinationAlert,
+  CourtesyAssessment,
+  ReplayResult,
+  ReviewStatus,
+} from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -33,5 +38,12 @@ export function submitDecision(
   return request(`/api/v1/alerts/${alertId}/decisions`, {
     method: "POST",
     body: JSON.stringify({ status, reason, reviewer: "moderator" }),
+  });
+}
+
+export function checkCourtesy(text: string): Promise<CourtesyAssessment> {
+  return request("/api/v1/text/courtesy-check", {
+    method: "POST",
+    body: JSON.stringify({ text }),
   });
 }
