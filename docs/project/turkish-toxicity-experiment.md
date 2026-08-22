@@ -33,6 +33,11 @@ Her yapılandırma için şu ölçümler kaydedilir:
 - özgün ve maskeli test farkı
 - veri/model sürümü, ortam ve checkpoint SHA-256 kayıtları
 
+Nadir sınıfların karar sınırını bozmasını azaltmak için sınıf logit sapmaları ve
+ikili uyarı eşiği yalnızca doğrulama ayrımında öğrenilir. Test etiketleri bu
+kalibrasyonda kullanılmaz. Sonuç dosyası kalibrasyonsuz ölçümleri, doğrulamada
+öğrenilen parametreleri ve tarafsız test ölçümlerini birlikte saklar.
+
 ## Kabul kapısı
 
 Normalize edilmiş model ancak aşağıdaki koşulların tamamında ürün adayıdır:
@@ -58,3 +63,7 @@ python experiments/sentiturca_berturk.py \
 ```
 
 İlk geçiş iki yapılandırmayı tek tohumla karşılaştırır. Kabul kapısına yaklaşan yapılandırma, nihai rapor ölçümü için `11,23,37` tohumlarıyla tekrarlanır.
+
+Var olan tam checkpoint'ler üzerinde yalnızca karar kalibrasyonunu ve tarafsız
+değerlendirmeyi yenilemek için aynı komuta `--reuse-checkpoints` eklenir. Bu
+seçenek yalnızca ilgili `config.json` bulunduğunda eğitimi atlar.
