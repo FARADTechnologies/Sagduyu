@@ -1,0 +1,32 @@
+name: Hata
+description: Yeniden üretilebilir bir hata bildirin
+title: "[Hata]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Hata açıklaması
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Yeniden üretme adımları
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Beklenen davranış
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Kanıt
+      description: Log, ekran görüntüsü veya test çıktısı ekleyin; kişisel ve gizli verileri temizleyin.
