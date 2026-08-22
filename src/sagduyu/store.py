@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from threading import RLock
+from typing import Protocol
 from uuid import uuid4
 
 from sagduyu.models import (
@@ -16,8 +17,33 @@ class AlertNotFoundError(LookupError):
     pass
 
 
+class ModerationStore(Protocol):
+    mode: str
+
+    def upsert_alerts(self, alerts: list[CoordinationAlert]) -> None: ...
+
+    def list_alerts(
+        self,
+        *,
+        min_risk_score: float = 0.0,
+        status: ReviewStatus | None = None,
+    ) -> list[CoordinationAlert]: ...
+
+    def get_alert(self, alert_id: str) -> CoordinationAlert: ...
+
+    def add_decision(
+        self,
+        alert_id: str,
+        request: ModerationDecisionCreate,
+    ) -> ModerationDecision: ...
+
+    def list_decisions(self, alert_id: str) -> list[ModerationDecision]: ...
+
+
 class InMemoryModerationStore:
     """Thread-safe prototype store behind a replaceable persistence boundary."""
+
+    mode = "memory"
 
     def __init__(self) -> None:
         self._alerts: dict[str, CoordinationAlert] = {}
