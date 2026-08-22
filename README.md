@@ -20,6 +20,8 @@ Sistem bileşenleri ve teknik sınırlar [mimari genel bakışta](docs/architect
 
 Model karşılaştırmalarında kullanılan ayrım, ölçüm ve sonuç yayınlama kuralları [değerlendirme protokolünde](docs/project/evaluation-protocol.md) tanımlıdır.
 
+Türkçe karakter maskelemesine karşı kullanılan kanonikleştirme adımları ve sınırları [metin normalizasyonu belgesinde](docs/project/text-normalization.md) açıklanır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
