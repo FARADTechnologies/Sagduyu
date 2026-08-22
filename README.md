@@ -32,6 +32,10 @@ Gerçek LEN-Small ve SentiTurca koşularından gelen seed, ortam, SHA, metrik ve
 ürün kararları [doğrulanmış model seçim sonuçlarında](docs/project/verified-results.md)
 kayıtlıdır.
 
+Hangi bileşenin ürün prototipine alındığı, yöntem olarak kabul edildiği veya
+ölçüm sonucunda reddedildiği [bileşen kabul matrisinde](docs/project/acceptance-matrix.md)
+açıklanır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
