@@ -18,14 +18,45 @@ Proje aktif geliştirme aşamasındadır. İlk hedef, koordineli manipülasyon t
 
 Sistem bileşenleri ve teknik sınırlar [mimari genel bakışta](docs/architecture/overview.md), veri kaynakları ve kullanım koşulları ise [veri kaynağı kaydında](docs/project/data-sources.md) açıklanır.
 
+## Hızlı başlangıç
+
+Python 3.12 veya üzeri gerekir.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+python -m uvicorn sagduyu.api:app --reload
+```
+
+PowerShell kullanıyorsanız etkinleştirme komutu `.venv\Scripts\Activate.ps1` şeklindedir.
+
+API belgesi servis başladıktan sonra `http://127.0.0.1:8000/docs` adresindedir.
+
+Örnek koordineli ve organik senaryolar komut satırından çalıştırılabilir:
+
+```bash
+python -m sagduyu coordinated-campaign
+python -m sagduyu organic-discussion
+python -m sagduyu announced-campaign
+```
+
+Kalite kontrolleri:
+
+```bash
+ruff format --check src tests
+ruff check src tests
+mypy src
+pytest --cov=sagduyu --cov-report=term-missing
+```
+
 ## Depo yapısı
 
 ```text
-apps/          Uygulama giriş noktaları
-packages/      Paylaşılan uygulama paketleri
-services/      Arka uç servisleri ve analiz motoru
-tests/         Otomatik testler
-docs/          Mimari, karar, deney ve rapor kanıtları
+src/sagduyu/   Analiz motoru, olay modelleri ve moderasyon API'si
+tests/         Birim ve entegrasyon testleri
+docs/          Mimari ve veri yönetişimi belgeleri
+apps/          Web uygulamaları
 notebooks/     Yeniden üretilebilir araştırma deneyleri
 ```
 
