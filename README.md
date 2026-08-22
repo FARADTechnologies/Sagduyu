@@ -24,6 +24,8 @@ Türkçe karakter maskelemesine karşı kullanılan kanonikleştirme adımları 
 
 Gönderi öncesi uyarının kullanıcı seçimini koruyan ilk çalışma biçimi [nezaket katmanı demo tabanında](docs/project/courtesy-baseline.md) açıklanır.
 
+LEN-Small açıklanabilir taban ve GCN karşılaştırmasının veri ayrımı ile kabul kapısı [GNN deney protokolünde](docs/project/gnn-experiment.md) tanımlıdır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
@@ -68,8 +70,8 @@ python -m sagduyu announced-campaign
 Kalite kontrolleri:
 
 ```bash
-ruff format --check src tests scripts
-ruff check src tests scripts
+ruff format --check src tests scripts experiments
+ruff check src tests scripts experiments
 mypy src scripts
 pytest --cov=sagduyu --cov-report=term-missing
 ```
