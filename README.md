@@ -18,6 +18,8 @@ Proje aktif geliştirme aşamasındadır. İlk hedef, koordineli manipülasyon t
 
 Sistem bileşenleri ve teknik sınırlar [mimari genel bakışta](docs/architecture/overview.md), veri kaynakları ve kullanım koşulları ise [veri kaynağı kaydında](docs/project/data-sources.md) açıklanır.
 
+Model karşılaştırmalarında kullanılan ayrım, ölçüm ve sonuç yayınlama kuralları [değerlendirme protokolünde](docs/project/evaluation-protocol.md) tanımlıdır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
@@ -54,11 +56,38 @@ python -m sagduyu announced-campaign
 Kalite kontrolleri:
 
 ```bash
-ruff format --check src tests
-ruff check src tests
-mypy src
+ruff format --check src tests scripts
+ruff check src tests scripts
+mypy src scripts
 pytest --cov=sagduyu --cov-report=term-missing
 ```
+
+## Veri ve ölçüm hattı
+
+Kayıtlı bir public veri kaynağı ham veriyi depoya eklemeden indirilebilir. İndirilen dosyanın URL, boyut, zaman ve SHA-256 bilgisi otomatik kaydedilir:
+
+```bash
+python scripts/fetch_dataset.py ephemeral_annotations
+python scripts/fetch_dataset.py len_metadata
+```
+
+Büyük `len_small` kaynağı kritik geliştirme yolundan bağımsızdır ve uygun disk/bulut ortamında isteğe bağlı indirilir.
+
+Ephemeral etiket dosyasının kimliksiz toplu profili şu şekilde üretilir:
+
+```bash
+python scripts/profile_ephemeral_annotations.py data/raw/ephemeral_attack_annotations.csv --output data/interim/ephemeral_profile.json
+```
+
+Bu profil sınıf dağılımı, tekrar sayısı, kaynak özeti ve eksik alan sınırını kaydeder; tweet kimliklerini veya ham satırları dışarı taşımaz.
+
+Platform adaptörlerinin ürettiği kampanya JSONL kayıtlarında zaman ve grup ayrımlı ölçüm çalıştırmak için:
+
+```bash
+sagduyu-evaluate data/interim/campaigns.jsonl --output artifacts/evaluation.json
+```
+
+Çıktı; veri sürümlerini, motor sürümünü, karışıklık matrisini, makro-F1, kesinlik, duyarlılık, yanlış pozitif oranı ve p50/p95 gecikmesini birlikte taşır.
 
 ## Depo yapısı
 

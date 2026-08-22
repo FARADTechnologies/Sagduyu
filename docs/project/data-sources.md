@@ -36,6 +36,12 @@ Kullanım sınırı: Ham veri depoya yeniden dağıtılmayacak. Kaynak ve yayın
 
 Kullanım sınırı: Kritik prototip yolundan bağımsız bulut deneyi. Veri sürümü ve kaynak sayısındaki fark deney kaydında açıkça belirtilecek.
 
+## Yeniden üretilebilir indirme kaydı
+
+Public kaynak adresleri `configs/data-sources.toml` içinde sürümlenir. `scripts/fetch_dataset.py`, seçilen kaynağı `data/raw/` altına indirir ve dosyanın URL, lisans notu, indirme zamanı, byte büyüklüğü ve SHA-256 özetini ayrı metadata dosyasına yazar. Ham dosyalar ile metadata kayıtları public depodan hariç tutulur; doğrulanmış özetler kaynak sürümüyle birlikte raporlanır.
+
+İndirici arşivleri otomatik açmaz ve veriyi dönüştürmez. Böylece kaynağın beklenmedik dosya yollarıyla çalışma alanına yazması engellenir; dönüşüm, doğrulanan ham dosyadan ayrı bir adaptör adımıdır.
+
 ## MGTAB
 
 - Kaynak: <https://github.com/GraphDetec/MGTAB>
