@@ -78,6 +78,7 @@ def classification_metrics(
     y_pred: list[int],
     label_names: list[str],
     latency_ms_per_item: float,
+    warning_predictions: list[bool] | None = None,
 ) -> dict[str, Any]:
     from sklearn.metrics import accuracy_score, f1_score, precision_recall_fscore_support
 
@@ -89,7 +90,9 @@ def classification_metrics(
     )
     warning = binary_warning_metrics(
         [label in RISK_LABELS for label in y_true],
-        [label in RISK_LABELS for label in y_pred],
+        warning_predictions
+        if warning_predictions is not None
+        else [label in RISK_LABELS for label in y_pred],
     )
     return {
         "accuracy": float(accuracy_score(y_true, y_pred)),
@@ -172,16 +175,14 @@ def prepare_texts(texts: list[str], normalized: bool) -> list[str]:
     return [normalizer.normalize(text) for text in texts]
 
 
-def evaluate_texts(
+def predict_texts(
     trainer: Any,
     tokenizer: Any,
     texts: list[str],
     labels: list[int],
-    label_names: list[str],
     max_length: int,
-) -> dict[str, Any]:
+) -> tuple[Any, float]:
     from datasets import Dataset
-    from numpy import argmax
 
     dataset = Dataset.from_dict({"text": texts, "label": labels})
     tokenized = dataset.map(
@@ -194,8 +195,133 @@ def evaluate_texts(
     started = time.perf_counter()
     output = trainer.predict(tokenized)
     latency = (time.perf_counter() - started) * 1000 / max(1, len(tokenized))
-    predictions = argmax(output.predictions, axis=-1).tolist()
-    return classification_metrics(labels, predictions, label_names, latency)
+    return output.predictions, latency
+
+
+def calibrated_predictions(
+    logits: Any,
+    class_biases: list[float],
+    risk_threshold: float,
+) -> tuple[list[int], list[bool]]:
+    import numpy as np
+
+    adjusted = np.asarray(logits, dtype=np.float64) + np.asarray(class_biases)
+    predictions = np.argmax(adjusted, axis=-1).tolist()
+    shifted = adjusted - adjusted.max(axis=1, keepdims=True)
+    probabilities = np.exp(shifted)
+    probabilities /= probabilities.sum(axis=1, keepdims=True)
+    risk_scores = probabilities[:, sorted(RISK_LABELS)].sum(axis=1)
+    warnings = (risk_scores >= risk_threshold).tolist()
+    return predictions, warnings
+
+
+def fit_decision_calibration(
+    logits: Any,
+    labels: list[int],
+    label_names: list[str],
+    maximum_false_positive_rate: float = MAXIMUM_BINARY_FALSE_POSITIVE_RATE,
+) -> dict[str, Any]:
+    import numpy as np
+    from sklearn.metrics import accuracy_score, f1_score
+
+    values = np.asarray(logits, dtype=np.float64)
+    targets = np.asarray(labels, dtype=np.int64)
+    reference_label = Counter(labels).most_common(1)[0][0]
+    biases = np.zeros(values.shape[1], dtype=np.float64)
+
+    def score(candidate_biases: Any) -> tuple[float, float]:
+        predictions = np.argmax(values + candidate_biases, axis=-1)
+        return (
+            float(f1_score(targets, predictions, average="macro", zero_division=0)),
+            float(accuracy_score(targets, predictions)),
+        )
+
+    for step, radius in ((0.5, 4.0), (0.1, 0.6), (0.02, 0.12)):
+        for label_index in range(values.shape[1]):
+            if label_index == reference_label:
+                continue
+            best_biases = biases.copy()
+            best_score = score(best_biases)
+            for offset in np.arange(-radius, radius + step / 2, step):
+                candidate = biases.copy()
+                candidate[label_index] += float(offset)
+                candidate_score = score(candidate)
+                if candidate_score > best_score:
+                    best_biases = candidate
+                    best_score = candidate_score
+            biases = best_biases
+
+    adjusted = values + biases
+    shifted = adjusted - adjusted.max(axis=1, keepdims=True)
+    probabilities = np.exp(shifted)
+    probabilities /= probabilities.sum(axis=1, keepdims=True)
+    risk_scores = probabilities[:, sorted(RISK_LABELS)].sum(axis=1)
+    actual_risk = np.isin(targets, list(RISK_LABELS))
+    candidate_thresholds = np.unique(risk_scores)
+    best_threshold = 1.0
+    best_warning_score = (-1.0, -1.0, -1.0)
+    for threshold in candidate_thresholds:
+        predicted_risk = risk_scores >= threshold
+        warning = binary_warning_metrics(actual_risk.tolist(), predicted_risk.tolist())
+        if warning["false_positive_rate"] > maximum_false_positive_rate:
+            continue
+        f1 = (
+            2
+            * warning["precision"]
+            * warning["recall"]
+            / max(1e-12, warning["precision"] + warning["recall"])
+        )
+        warning_score = (f1, warning["recall"], -warning["false_positive_rate"])
+        if warning_score > best_warning_score:
+            best_warning_score = warning_score
+            best_threshold = float(threshold)
+
+    uncalibrated_predictions = np.argmax(values, axis=-1).tolist()
+    calibrated_labels, calibrated_warnings = calibrated_predictions(
+        values, biases.tolist(), best_threshold
+    )
+    return {
+        "method": "validation_class_bias_and_risk_threshold_v1",
+        "reference_label": label_names[reference_label],
+        "class_biases": {name: float(biases[index]) for index, name in enumerate(label_names)},
+        "risk_threshold": best_threshold,
+        "validation_uncalibrated": classification_metrics(
+            labels, uncalibrated_predictions, label_names, 0.0
+        ),
+        "validation_calibrated": classification_metrics(
+            labels,
+            calibrated_labels,
+            label_names,
+            0.0,
+            warning_predictions=calibrated_warnings,
+        ),
+    }
+
+
+def evaluate_texts(
+    trainer: Any,
+    tokenizer: Any,
+    texts: list[str],
+    labels: list[int],
+    label_names: list[str],
+    max_length: int,
+    calibration: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    import numpy as np
+
+    logits, latency = predict_texts(trainer, tokenizer, texts, labels, max_length)
+    if calibration is None:
+        predictions = np.argmax(logits, axis=-1).tolist()
+        return classification_metrics(labels, predictions, label_names, latency)
+    biases = [calibration["class_biases"][name] for name in label_names]
+    predictions, warnings = calibrated_predictions(logits, biases, calibration["risk_threshold"])
+    return classification_metrics(
+        labels,
+        predictions,
+        label_names,
+        latency,
+        warning_predictions=warnings,
+    )
 
 
 def create_trainer(
@@ -295,6 +421,7 @@ def run_configuration(
     eval_batch_size: int,
     learning_rate: float,
     model_revision: str,
+    reuse_checkpoint: bool,
 ) -> dict[str, Any]:
     import numpy as np
     import torch
@@ -333,13 +460,17 @@ def run_configuration(
     class_weights = [
         total / (len(label_names) * counts[index]) for index in range(len(label_names))
     ]
-    model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_NAME,
-        revision=model_revision,
-        num_labels=len(label_names),
-        id2label={index: name for index, name in enumerate(label_names)},
-        label2id={name: index for index, name in enumerate(label_names)},
-    )
+    checkpoint_available = (output_dir / "config.json").exists()
+    if reuse_checkpoint and checkpoint_available:
+        model = AutoModelForSequenceClassification.from_pretrained(output_dir)
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            MODEL_NAME,
+            revision=model_revision,
+            num_labels=len(label_names),
+            id2label={index: name for index, name in enumerate(label_names)},
+            label2id={name: index for index, name in enumerate(label_names)},
+        )
     trainer = create_trainer(
         model=model,
         tokenizer=tokenizer,
@@ -353,10 +484,30 @@ def run_configuration(
         eval_batch_size=eval_batch_size,
         learning_rate=learning_rate,
     )
-    trainer.train()
+    if not (reuse_checkpoint and checkpoint_available):
+        trainer.train()
+
+    validation_texts = split_texts["validation"]
+    validation_labels = [int(label) for label in dataset["validation"]["label"]]
+    validation_logits, _ = predict_texts(
+        trainer,
+        tokenizer,
+        validation_texts,
+        validation_labels,
+        max_length,
+    )
+    calibration = fit_decision_calibration(validation_logits, validation_labels, label_names)
 
     test_texts = list(dataset["test"]["text"])
     test_labels = [int(label) for label in dataset["test"]["label"]]
+    uncalibrated_original = evaluate_texts(
+        trainer,
+        tokenizer,
+        prepare_texts(test_texts, normalized),
+        test_labels,
+        label_names,
+        max_length,
+    )
     original = evaluate_texts(
         trainer,
         tokenizer,
@@ -364,6 +515,7 @@ def run_configuration(
         test_labels,
         label_names,
         max_length,
+        calibration,
     )
     masked_texts, masked_labels, attack_names = masked_examples(test_texts, test_labels)
     masked = evaluate_texts(
@@ -373,6 +525,7 @@ def run_configuration(
         masked_labels,
         label_names,
         max_length,
+        calibration,
     )
     per_attack = {
         attack: evaluate_texts(
@@ -393,17 +546,25 @@ def run_configuration(
             ],
             label_names,
             max_length,
+            calibration,
         )
         for attack in MASK_VARIANTS
     }
     output_dir.mkdir(parents=True, exist_ok=True)
-    trainer.save_model(output_dir)
-    tokenizer.save_pretrained(output_dir)
+    if not (reuse_checkpoint and checkpoint_available):
+        trainer.save_model(output_dir)
+        tokenizer.save_pretrained(output_dir)
+    (output_dir / "decision_calibration.json").write_text(
+        json.dumps(calibration, indent=2) + "\n", encoding="utf-8"
+    )
     shutil.rmtree(output_dir / "training", ignore_errors=True)
     return {
         "mode": mode,
         "seed": seed,
         "class_weights": class_weights,
+        "training_reused": reuse_checkpoint and checkpoint_available,
+        "calibration": calibration,
+        "uncalibrated_original": uncalibrated_original,
         "original": original,
         "masked": masked,
         "per_attack": per_attack,
@@ -425,6 +586,11 @@ def main() -> None:
     parser.add_argument("--learning-rate", type=float, default=2e-5)
     parser.add_argument("--dataset-revision", default=DATASET_REVISION)
     parser.add_argument("--model-revision", default=MODEL_REVISION)
+    parser.add_argument(
+        "--reuse-checkpoints",
+        action="store_true",
+        help="Mevcut model checkpoint'lerini yeniden eğitmeden değerlendir",
+    )
     args = parser.parse_args()
 
     import datasets
@@ -468,6 +634,7 @@ def main() -> None:
             eval_batch_size=args.eval_batch_size,
             learning_rate=args.learning_rate,
             model_revision=args.model_revision,
+            reuse_checkpoint=args.reuse_checkpoints,
         )
         for mode in modes
         for seed in seeds
