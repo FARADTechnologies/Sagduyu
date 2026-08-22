@@ -1,0 +1,34 @@
+name: Özellik
+description: Yeni bir ürün veya teknik yetenek önerin
+title: "[Özellik]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Çözülmesi gereken kullanıcı veya sistem problemini açıklayın.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Beklenen sonuç
+      description: Başarı durumunda gözlenebilir sonucu yazın.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kabul ölçütleri
+      description: Doğrulanabilir maddeler halinde yazın.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Riskler ve bağımlılıklar
