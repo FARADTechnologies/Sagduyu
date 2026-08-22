@@ -30,24 +30,39 @@ def resolve_label(stem: str, labels: dict[str, int]) -> int:
     raise KeyError(f"label not found for graph: {stem}")
 
 
+def resolve_filename_label(stem: str) -> int:
+    lowered = stem.lower()
+    if lowered.endswith("_noncampaign_fulldata"):
+        return 0
+    if lowered.endswith("_campaign_fulldata"):
+        return 1
+    raise KeyError(f"campaign suffix not found for graph: {stem}")
+
+
 def load_graphs(dataset_dir: Path):
     import networkx as nx
     import torch
     from networkx.readwrite import json_graph
     from torch_geometric.data import Data
 
-    labels = json.loads((dataset_dir / "graph_labels.json").read_text(encoding="utf-8"))
+    labels_path = dataset_dir / "graph_labels.json"
+    labels = json.loads(labels_path.read_text(encoding="utf-8")) if labels_path.exists() else None
+    label_source = "graph_labels.json" if labels is not None else "filename_suffix"
     graphs = []
     names = []
     for path in sorted(dataset_dir.glob("*.json")):
         if path.stem.startswith("graph_labels"):
             continue
         try:
-            label = resolve_label(path.stem, labels)
+            label = (
+                resolve_label(path.stem, labels)
+                if labels is not None
+                else resolve_filename_label(path.stem)
+            )
         except KeyError:
             continue
         raw = json.loads(path.read_text(encoding="utf-8"))
-        graph = nx.DiGraph(json_graph.node_link_graph(raw))
+        graph = nx.DiGraph(json_graph.node_link_graph(raw, edges="links"))
         mapping = {node: index for index, node in enumerate(graph.nodes())}
         graph = nx.relabel_nodes(graph, mapping)
         x = torch.tensor(
@@ -60,7 +75,11 @@ def load_graphs(dataset_dir: Path):
         names.append(path.name)
     if len(graphs) < 4 or len({int(graph.y.item()) for graph in graphs}) < 2:
         raise ValueError("LEN directory must contain at least four labeled graphs and two classes")
-    return graphs, names
+    distribution = {
+        "noncampaign": sum(int(graph.y.item()) == 0 for graph in graphs),
+        "campaign": sum(int(graph.y.item()) == 1 for graph in graphs),
+    }
+    return graphs, names, {"label_source": label_source, "class_distribution": distribution}
 
 
 def aggregate_features(graphs):
@@ -185,7 +204,7 @@ def main() -> None:
     import torch
     from sklearn.model_selection import StratifiedShuffleSplit
 
-    graphs, graph_names = load_graphs(args.dataset_dir)
+    graphs, graph_names, dataset_metadata = load_graphs(args.dataset_dir)
     labels = [int(graph.y.item()) for graph in graphs]
     seed_values = [int(value) for value in args.seeds.split(",")]
     runs = []
@@ -213,6 +232,7 @@ def main() -> None:
         "dataset": "LEN-Small",
         "archive_sha256": sha256_file(args.archive),
         "graph_count": len(graphs),
+        **dataset_metadata,
         "split_unit": "independent_graph",
         "seeds": seed_values,
         "environment": {
