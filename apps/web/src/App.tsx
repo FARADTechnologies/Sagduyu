@@ -251,6 +251,24 @@ function App() {
                   <article><span>Olay</span><strong>{selected.event_ids.length}</strong><small>kanıt penceresinde</small></article>
                 </div>
 
+                {selected.context_evidence.length > 0 && (
+                  <aside className="context-evidence" aria-labelledby="context-evidence-title">
+                    <div className="context-evidence__icon" aria-hidden="true">i</div>
+                    <div>
+                      <p className="eyebrow">BAĞLAM KANITI - SKORA ETKİ ETMEZ</p>
+                      <h3 id="context-evidence-title">{selected.context_evidence[0].label}</h3>
+                      <p>{selected.context_evidence[0].explanation}</p>
+                      <a href={selected.context_evidence[0].source_url} target="_blank" rel="noreferrer">
+                        Duyuru kaynağını incele
+                      </a>
+                    </div>
+                    <dl>
+                      <div><dt>Hesap</dt><dd>{selected.context_evidence[0].account_count}</dd></div>
+                      <div><dt>Olay</dt><dd>{selected.context_evidence[0].event_count}</dd></div>
+                    </dl>
+                  </aside>
+                )}
+
                 <div className="evidence-grid">
                   <article className="panel signals-panel">
                     <div className="panel-title"><div><p className="eyebrow">AÇIKLANABİLİR SKOR</p><h3>Sinyal katkıları</h3></div><span>v{selected.engine_version}</span></div>

@@ -3,7 +3,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 
-from sagduyu.models import EventType, SocialEvent
+from sagduyu.models import (
+    CoordinationContext,
+    CoordinationContextType,
+    EventType,
+    SocialEvent,
+)
 
 
 def coordinated_campaign() -> list[SocialEvent]:
@@ -79,6 +84,12 @@ def announced_campaign() -> list[SocialEvent]:
     """A transparent civic campaign that may look coordinated but is not covert."""
     base = datetime(2025, 6, 16, 8, 0, tzinfo=UTC)
     accounts = [f"volunteer_{index:02d}" for index in range(1, 7)]
+    context = CoordinationContext(
+        context_type=CoordinationContextType.PUBLIC_ANNOUNCEMENT,
+        label="Duyurulmuş fidan dikme etkinliği",
+        source_url="https://example.test/public-announcement",
+        disclosure_id="announcement_tree_planting_2025_06_16",
+    )
     return [
         SocialEvent(
             event_id=f"announced_{index:02d}",
@@ -92,6 +103,7 @@ def announced_campaign() -> list[SocialEvent]:
             target_id="announced_tree_planting_event",
             urls=("https://example.test/public-announcement",),
             hashtags=("BirlikteYesert",),
+            coordination_context=context,
             synthetic=True,
         )
         for index, account_id in enumerate(accounts)
