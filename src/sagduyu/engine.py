@@ -383,9 +383,7 @@ def _signal_contribution(key: str, value: float) -> SignalContribution:
 
 
 def _aggregate_context_evidence(events: Sequence[SocialEvent]) -> list[ContextEvidence]:
-    grouped: dict[
-        tuple[CoordinationContextType, str, str, str], tuple[set[str], int]
-    ] = {}
+    grouped: dict[tuple[CoordinationContextType, str, str, str], tuple[set[str], int]] = {}
     for event in events:
         context = event.coordination_context
         if context is None:

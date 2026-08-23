@@ -58,9 +58,7 @@ def test_announced_campaign_is_flagged_for_review_without_claiming_harm() -> Non
 
 def test_context_metadata_does_not_change_coordination_score() -> None:
     events = announced_campaign()
-    without_context = [
-        event.model_copy(update={"coordination_context": None}) for event in events
-    ]
+    without_context = [event.model_copy(update={"coordination_context": None}) for event in events]
 
     with_context_alert = CoordinationEngine().analyze(events)[0]
     without_context_alert = CoordinationEngine().analyze(without_context)[0]
