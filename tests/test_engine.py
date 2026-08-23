@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from sagduyu.engine import CoordinationEngine
-from sagduyu.models import EventType, RiskLevel, SocialEvent
+from sagduyu.models import CoordinationContext, EventType, RiskLevel, SocialEvent
 from sagduyu.scenarios import announced_campaign, coordinated_campaign, organic_discussion
 
 
@@ -47,6 +47,26 @@ def test_announced_campaign_is_flagged_for_review_without_claiming_harm() -> Non
     assert alert.synthetic is True
     assert "koordinasyon adayı" in alert.summary
     assert "zararlı" not in alert.summary.lower()
+    assert len(alert.context_evidence) == 1
+    evidence = alert.context_evidence[0]
+    assert evidence.context_type == "public_announcement"
+    assert evidence.account_count == 6
+    assert evidence.event_count == 6
+    assert evidence.changes_risk_score is False
+    assert "risk skorunu değiştirmez" in evidence.explanation
+
+
+def test_context_metadata_does_not_change_coordination_score() -> None:
+    events = announced_campaign()
+    without_context = [
+        event.model_copy(update={"coordination_context": None}) for event in events
+    ]
+
+    with_context_alert = CoordinationEngine().analyze(events)[0]
+    without_context_alert = CoordinationEngine().analyze(without_context)[0]
+
+    assert with_context_alert.risk_score == without_context_alert.risk_score
+    assert without_context_alert.context_evidence == []
 
 
 def test_analysis_is_deterministic_for_the_same_events() -> None:
@@ -67,6 +87,16 @@ def test_delete_event_requires_reference() -> None:
             event_type=EventType.DELETE,
             created_at=datetime.now(UTC),
             synthetic=True,
+        )
+
+
+def test_context_source_rejects_non_web_urls() -> None:
+    with pytest.raises(ValidationError):
+        CoordinationContext(
+            context_type="public_announcement",
+            label="Şüpheli bağlantı",
+            source_url="javascript:alert(1)",
+            disclosure_id="unsafe",
         )
 
 

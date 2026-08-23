@@ -11,7 +11,9 @@ from datetime import UTC, datetime
 from itertools import combinations
 
 from sagduyu.models import (
+    ContextEvidence,
     CoordinationAlert,
+    CoordinationContextType,
     EventType,
     GraphEvidence,
     RiskLevel,
@@ -261,6 +263,7 @@ class CoordinationEngine:
             ((evidence.left, evidence.right, evidence.strength) for evidence in edges.values()),
             key=lambda pair: (-pair[2], pair[0], pair[1]),
         )[:12]
+        context_evidence = _aggregate_context_evidence(ordered_events)
 
         return CoordinationAlert(
             alert_id=alert_id,
@@ -283,6 +286,7 @@ class CoordinationEngine:
                 density=round(density, 6),
                 strongest_pairs=strongest_pairs,
             ),
+            context_evidence=context_evidence,
             synthetic=all(event.synthetic for event in ordered_events),
             engine_version=self.version,
         )
@@ -375,4 +379,46 @@ def _signal_contribution(key: str, value: float) -> SignalContribution:
         weight=weight,
         contribution=contribution,
         explanation=explanations[key],
+    )
+
+
+def _aggregate_context_evidence(events: Sequence[SocialEvent]) -> list[ContextEvidence]:
+    grouped: dict[
+        tuple[CoordinationContextType, str, str, str], tuple[set[str], int]
+    ] = {}
+    for event in events:
+        context = event.coordination_context
+        if context is None:
+            continue
+        key = (
+            context.context_type,
+            context.label,
+            context.source_url,
+            context.disclosure_id,
+        )
+        accounts, event_count = grouped.get(key, (set(), 0))
+        accounts.add(event.account_id)
+        grouped[key] = (accounts, event_count + 1)
+
+    evidence = [
+        ContextEvidence(
+            context_type=context_type,
+            label=label,
+            source_url=source_url,
+            disclosure_id=disclosure_id,
+            event_count=event_count,
+            account_count=len(accounts),
+            explanation=(
+                "Olay sağlayıcısı bu hareketleri önceden açıklanmış bir bağlamla ilişkilendirdi. "
+                "Bu bilgi risk skorunu değiştirmez; kaynak doğrulaması ve insan incelemesi gerekir."
+            ),
+        )
+        for (context_type, label, source_url, disclosure_id), (
+            accounts,
+            event_count,
+        ) in grouped.items()
+    ]
+    return sorted(
+        evidence,
+        key=lambda item: (-item.account_count, -item.event_count, item.disclosure_id),
     )

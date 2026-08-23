@@ -19,6 +19,7 @@ const alert = {
   ],
   targets: [{ key: "tag:ortakcagri", event_count: 3, account_count: 3 }],
   graph: { node_count: 3, edge_count: 3, density: 1, strongest_pairs: [] },
+  context_evidence: [],
   status: "pending",
   synthetic: true,
   engine_version: "0.1.0",
@@ -85,5 +86,36 @@ describe("moderasyon merkezi", () => {
     expect(
       screen.getByText("Kullanıcı tercihi korundu; demo gönderimi engellenmedi."),
     ).toBeInTheDocument();
+  });
+
+  it("duyurulmuş kampanya bağlamını skor dışı kanıt olarak gösterir", async () => {
+    const contextualAlert = {
+      ...alert,
+      context_evidence: [{
+        context_type: "public_announcement",
+        label: "Duyurulmuş fidan dikme etkinliği",
+        source_url: "https://example.test/public-announcement",
+        disclosure_id: "announcement_demo",
+        event_count: 6,
+        account_count: 6,
+        changes_risk_score: false,
+        explanation: "Bu bilgi risk skorunu değiştirmez; kaynak doğrulaması gerekir.",
+      }],
+    };
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({
+      scenario: "announced-campaign",
+      event_count: 6,
+      alert_count: 1,
+      alerts: [contextualAlert],
+    }), { status: 200 }));
+
+    render(<App />);
+
+    expect(await screen.findByRole("heading", { name: "Duyurulmuş fidan dikme etkinliği" })).toBeInTheDocument();
+    expect(screen.getByText("BAĞLAM KANITI - SKORA ETKİ ETMEZ")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Duyuru kaynağını incele" })).toHaveAttribute(
+      "href",
+      "https://example.test/public-announcement",
+    );
   });
 });

@@ -23,6 +23,17 @@ export interface GraphEvidence {
   strongest_pairs: [string, string, number][];
 }
 
+export interface ContextEvidence {
+  context_type: "public_announcement" | "scheduled_event" | "platform_campaign";
+  label: string;
+  source_url: string;
+  disclosure_id: string;
+  event_count: number;
+  account_count: number;
+  changes_risk_score: boolean;
+  explanation: string;
+}
+
 export interface CoordinationAlert {
   alert_id: string;
   created_at: string;
@@ -36,6 +47,7 @@ export interface CoordinationAlert {
   signals: SignalContribution[];
   targets: TargetEvidence[];
   graph: GraphEvidence;
+  context_evidence: ContextEvidence[];
   status: ReviewStatus;
   synthetic: boolean;
   engine_version: string;

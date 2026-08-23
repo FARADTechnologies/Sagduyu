@@ -119,6 +119,15 @@ h1 { font: 800 clamp(28px, 4vw, 48px)/1.06 Arial, sans-serif; letter-spacing: -.
 .metric-grid span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
 .metric-grid strong { display: block; font: 700 25px Arial, sans-serif; margin: 5px 0 2px; }
 .metric-grid small { font-size: 10px; }
+.context-evidence { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; margin: 12px 0; padding: 16px 18px; color: #d7e7dd; background: rgba(99,230,190,.07); border: 1px solid rgba(99,230,190,.3); border-radius: 10px; }
+.context-evidence__icon { width: 30px; height: 30px; display: grid; place-items: center; color: #052018; background: var(--accent); border-radius: 50%; font-weight: 900; }
+.context-evidence h3 { margin: 3px 0 4px; font-size: 14px; }
+.context-evidence p:not(.eyebrow) { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.context-evidence a { display: inline-block; margin-top: 7px; color: var(--accent); font-size: 10px; font-weight: 700; }
+.context-evidence dl { display: flex; gap: 12px; margin: 0; }
+.context-evidence dl div { min-width: 48px; text-align: center; }
+.context-evidence dt { color: var(--muted); font-size: 9px; }
+.context-evidence dd { margin: 2px 0 0; font-size: 16px; font-weight: 800; }
 .evidence-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 12px; }
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
 .panel-title { margin-bottom: 18px; }
@@ -184,6 +193,8 @@ legend, .reason-field { color: var(--muted); font-size: 10px; font-weight: 700; 
   .intro { align-items: stretch; flex-direction: column; }
   .courtesy-card { grid-template-columns: 1fr; }
   .courtesy-result { grid-column: 1; }
+  .context-evidence { grid-template-columns: auto minmax(0, 1fr); }
+  .context-evidence dl { grid-column: 2; }
   .workspace { display: block; }
   .queue { min-height: 0; border-right: 0; border-bottom: 1px solid var(--line); }
   .evidence-header { align-items: flex-start; }

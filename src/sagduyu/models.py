@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class EventType(StrEnum):
@@ -28,6 +28,28 @@ class ReviewStatus(StrEnum):
     NEEDS_MORE_DATA = "needs_more_data"
 
 
+class CoordinationContextType(StrEnum):
+    PUBLIC_ANNOUNCEMENT = "public_announcement"
+    SCHEDULED_EVENT = "scheduled_event"
+    PLATFORM_CAMPAIGN = "platform_campaign"
+
+
+class CoordinationContext(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    context_type: CoordinationContextType
+    label: str = Field(min_length=3, max_length=256)
+    source_url: str = Field(min_length=8, max_length=2_048)
+    disclosure_id: str = Field(min_length=1, max_length=256)
+
+    @field_validator("source_url")
+    @classmethod
+    def require_web_source(cls, value: str) -> str:
+        if not value.lower().startswith(("https://", "http://")):
+            raise ValueError("context source_url must use http or https")
+        return value
+
+
 class SocialEvent(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -40,6 +62,7 @@ class SocialEvent(BaseModel):
     reference_event_id: str | None = Field(default=None, max_length=128)
     urls: tuple[str, ...] = ()
     hashtags: tuple[str, ...] = ()
+    coordination_context: CoordinationContext | None = None
     synthetic: bool = False
 
     @model_validator(mode="after")
@@ -81,6 +104,17 @@ class GraphEvidence(BaseModel):
     strongest_pairs: list[tuple[str, str, float]]
 
 
+class ContextEvidence(BaseModel):
+    context_type: CoordinationContextType
+    label: str
+    source_url: str
+    disclosure_id: str
+    event_count: int = Field(ge=1)
+    account_count: int = Field(ge=1)
+    changes_risk_score: bool = False
+    explanation: str
+
+
 class CoordinationAlert(BaseModel):
     alert_id: str
     created_at: datetime
@@ -94,6 +128,7 @@ class CoordinationAlert(BaseModel):
     signals: list[SignalContribution]
     targets: list[TargetEvidence]
     graph: GraphEvidence
+    context_evidence: list[ContextEvidence] = Field(default_factory=list)
     status: ReviewStatus = ReviewStatus.PENDING
     synthetic: bool = False
     engine_version: str = "0.1.0"
