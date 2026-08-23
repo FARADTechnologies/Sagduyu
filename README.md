@@ -36,6 +36,10 @@ Hangi bileşenin ürün prototipine alındığı, yöntem olarak kabul edildiği
 ölçüm sonucunda reddedildiği [bileşen kabul matrisinde](docs/project/acceptance-matrix.md)
 açıklanır.
 
+Üç ana senaryoyu, gerekçeli kararı, nezaket uyarısını ve toplu gecikme özetini
+tek komutta doğrulayan akış [demo ve ölçüm kanıtında](docs/project/demo-evidence.md)
+yer alır.
+
 ## Hızlı başlangıç
 
 Python 3.12 veya üzeri gerekir.
@@ -75,6 +79,12 @@ Arayüz `http://127.0.0.1:5173` adresinde açılır ve varsayılan olarak yerel 
 python -m sagduyu coordinated-campaign
 python -m sagduyu organic-discussion
 python -m sagduyu announced-campaign
+```
+
+Tam jüri demo akışını ve beklenen olay/alarm sayılarını otomatik doğrulamak için:
+
+```bash
+python scripts/run_demo_evidence.py --output artifacts/demo-evidence.json
 ```
 
 Kalite kontrolleri:

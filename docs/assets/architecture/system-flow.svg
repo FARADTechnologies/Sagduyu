@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="520" viewBox="0 0 1400 520" role="img" aria-labelledby="title desc">
+  <title id="title">SAĞDUYU sistem akışı</title>
+  <desc id="desc">Platform olaylarından açıklanabilir kanıt ve insan kararına uzanan mimari.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1"><stop stop-color="#07131b"/><stop offset="1" stop-color="#102b35"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#63e6be"/></marker>
+    <style>
+      .box{fill:#102630;stroke:#315363;stroke-width:2;rx:18}.accent{fill:#10392f;stroke:#63e6be}.t{fill:#eef7f3;font:700 22px Arial}.s{fill:#a8bdc7;font:16px Arial}.a{stroke:#63e6be;stroke-width:4;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1400" height="520" rx="28" fill="url(#bg)"/>
+  <text x="70" y="70" class="t" font-size="30">SAĞDUYU - açıklanabilir sosyal bağışıklık akışı</text>
+  <rect class="box" x="55" y="155" width="200" height="150"/><text class="t" x="83" y="205">Platform adaptörü</text><text class="s" x="83" y="242">Gönderi, paylaşım,</text><text class="s" x="83" y="268">yanıt ve silme olayları</text>
+  <line class="a" x1="255" y1="230" x2="315" y2="230"/>
+  <rect class="box" x="325" y="155" width="220" height="150"/><text class="t" x="353" y="205">Ortak olay şeması</text><text class="s" x="353" y="242">Kimliksiz, sürümlü ve</text><text class="s" x="353" y="268">platformdan bağımsız</text>
+  <line class="a" x1="545" y1="230" x2="605" y2="230"/>
+  <rect class="box accent" x="615" y="135" width="250" height="190"/><text class="t" x="645" y="185">Koordinasyon motoru</text><text class="s" x="645" y="222">Zaman + metin + hedef</text><text class="s" x="645" y="248">+ tekrar + graf + silme</text><text class="s" x="645" y="285">Bağlam skoru değiştirmez</text>
+  <line class="a" x1="865" y1="230" x2="925" y2="230"/>
+  <rect class="box" x="935" y="155" width="210" height="150"/><text class="t" x="962" y="205">Kanıt katmanı</text><text class="s" x="962" y="242">Skor, sinyal katkısı,</text><text class="s" x="962" y="268">graf ve zaman çizgisi</text>
+  <line class="a" x1="1145" y1="230" x2="1205" y2="230"/>
+  <rect class="box accent" x="1215" y="155" width="140" height="150"/><text class="t" x="1240" y="205">İnsan</text><text class="t" x="1235" y="234">kararı</text><text class="s" x="1238" y="270">Gerekçeli</text>
+  <line class="a" x1="1040" y1="305" x2="1040" y2="390"/>
+  <rect class="box" x="850" y="390" width="380" height="80"/><text class="t" x="880" y="428">PostgreSQL + Neo4j denetim izi</text><text class="s" x="880" y="454">Alarm, karar ve açıklanabilir ilişki grafı</text>
+  <rect x="55" y="370" width="590" height="100" rx="16" fill="#0b1c25" stroke="#28414d"/><text class="t" x="82" y="410">Ürün sınırı</text><text class="s" x="82" y="443">İçerik doğruluğu hükmü ve otomatik yaptırım yoktur.</text>
+</svg>
