@@ -41,6 +41,7 @@ function targetLabel(value: string): string {
 }
 
 function App() {
+  const [activeView, setActiveView] = useState<"network" | "courtesy">("network");
   const [scenario, setScenario] = useState(SCENARIOS[0].value);
   const [alerts, setAlerts] = useState<CoordinationAlert[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -122,72 +123,73 @@ function App() {
           <span className="brand-mark" aria-hidden="true">S</span>
           <span>
             <strong>SAĞDUYU</strong>
-            <small>Moderasyon Merkezi</small>
+            <small>Sosyal bağışıklık katmanı</small>
           </span>
         </div>
+        <nav className="product-nav" aria-label="Ürün alanları" role="tablist">
+          <button
+            aria-controls="network-panel"
+            aria-selected={activeView === "network"}
+            className={activeView === "network" ? "is-active" : ""}
+            id="network-tab"
+            onClick={() => setActiveView("network")}
+            role="tab"
+            type="button"
+          >
+            <span className="nav-icon nav-icon--network" aria-hidden="true" />
+            Ağ inceleme
+          </button>
+          <button
+            aria-controls="courtesy-panel"
+            aria-selected={activeView === "courtesy"}
+            className={activeView === "courtesy" ? "is-active" : ""}
+            id="courtesy-tab"
+            onClick={() => setActiveView("courtesy")}
+            role="tab"
+            type="button"
+          >
+            <span className="nav-icon nav-icon--courtesy" aria-hidden="true" />
+            Nezaket katmanı
+          </button>
+        </nav>
         <div className="system-state"><span aria-hidden="true" /> Sistem hazır</div>
       </header>
 
       <main>
-        <section className="intro" aria-labelledby="page-title">
-          <div>
-            <p className="eyebrow">KOORDİNASYON İNCELEME ALANI</p>
-            <h1 id="page-title">Sinyali görün, kanıtla karar verin.</h1>
-            <p>İçerik doğruluğunu değil, hesapların birlikte hareket etme örüntülerini inceler.</p>
-          </div>
-          <div className="scenario-control">
-            <label htmlFor="scenario">Demo senaryosu</label>
-            <div>
-              <select
-                id="scenario"
-                value={scenario}
-                onChange={(event) => setScenario(event.target.value)}
-              >
-                {SCENARIOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-              <button type="button" onClick={() => void runScenario(scenario)} disabled={loading}>
-                {loading ? "Analiz ediliyor…" : "Senaryoyu çalıştır"}
-              </button>
-            </div>
-          </div>
-        </section>
-
         {error && <div className="message message--error" role="alert">{error}</div>}
         {notice && <div className="message message--success" role="status">{notice}</div>}
 
-        <section className="courtesy-card" aria-labelledby="courtesy-title">
-          <div className="courtesy-copy">
-            <p className="eyebrow">GÖNDERİ ÖNCESİ NEZAKET KATMANI</p>
-            <h2 id="courtesy-title">Paylaşmadan önce bir kez daha bakın.</h2>
-            <p>Maskeleme girişimlerini açıklar, kullanıcıyı uyarır; metni engellemez veya otomatik yaptırım uygulamaz.</p>
-          </div>
-          <form onSubmit={handleCourtesyCheck}>
-            <label htmlFor="courtesy-text">Gönderi taslağı</label>
-            <div className="courtesy-input">
-              <textarea id="courtesy-text" value={courtesyText} onChange={(event) => { setCourtesyText(event.target.value); setCourtesyResult(null); }} required maxLength={5000} />
-              <button type="submit" disabled={checkingCourtesy}>{checkingCourtesy ? "Kontrol ediliyor…" : "Nezaket kontrolü"}</button>
-            </div>
-          </form>
-          {courtesyResult && (
-            <div className={`courtesy-result courtesy-result--${courtesyResult.level}`} role="status">
-              <div>
-                <span className="courtesy-score">{Math.round(courtesyResult.risk_score)}</span>
-                <p><strong>{courtesyResult.should_warn ? courtesyResult.warning : "Belirgin bir nezaket riski bulunmadı."}</strong><small>{courtesyResult.disclaimer}</small></p>
+        {activeView === "network" ? (
+          <section
+            aria-labelledby="page-title"
+            aria-live="polite"
+            id="network-panel"
+            role="tabpanel"
+          >
+            <header className="view-bar">
+              <div className="view-title">
+                <p className="eyebrow">KOORDİNASYON İNCELEMESİ</p>
+                <h1 id="page-title">Kanıta dayalı moderasyon çalışma alanı</h1>
+                <p>Hesapların birlikte hareket etme örüntülerini inceleyin; kararı gerekçesiyle kaydedin.</p>
               </div>
-              {courtesyResult.matches.length > 0 && (
-                <div className="match-list">
-                  {courtesyResult.matches.map((match) => <span key={match.canonical_form}><b>{match.canonical_form}</b>{match.category}</span>)}
+              <div className="scenario-control">
+                <label htmlFor="scenario">İnceleme senaryosu</label>
+                <div>
+                  <select
+                    id="scenario"
+                    value={scenario}
+                    onChange={(event) => setScenario(event.target.value)}
+                  >
+                    {SCENARIOS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                  <button type="button" onClick={() => void runScenario(scenario)} disabled={loading}>
+                    {loading ? "Analiz ediliyor…" : "Analizi çalıştır"}
+                  </button>
                 </div>
-              )}
-              <div className="courtesy-actions">
-                <button type="button" onClick={() => setCourtesyResult(null)}>Metni düzenle</button>
-                <button type="button" onClick={() => setNotice("Kullanıcı tercihi korundu; demo gönderimi engellenmedi.")}>Yine de devam et</button>
               </div>
-            </div>
-          )}
-        </section>
+            </header>
 
-        <div className="workspace">
+            <div className="workspace">
           <aside className="queue" aria-label="Alarm kuyruğu">
             <div className="section-heading">
               <div><p className="eyebrow">ALARM KUYRUĞU</p><h2>İncelenecek ağlar</h2></div>
@@ -331,7 +333,109 @@ function App() {
               </>
             )}
           </section>
-        </div>
+            </div>
+          </section>
+        ) : (
+          <section
+            aria-labelledby="courtesy-title"
+            id="courtesy-panel"
+            role="tabpanel"
+          >
+            <div className="courtesy-view">
+              <header className="courtesy-hero">
+                <p className="eyebrow">GÖNDERİ ÖNCESİ NEZAKET KATMANI</p>
+                <h1 id="courtesy-title">Düşünün, düzenleyin, seçiminizi koruyun.</h1>
+                <p>
+                  Türkçedeki karakter maskeleme girişimlerini açıklar ve paylaşmadan önce
+                  düşünme fırsatı verir. İçeriğiniz sizin onayınız olmadan değiştirilmez.
+                </p>
+                <div className="principle-list" aria-label="Nezaket katmanı ilkeleri">
+                  <span><b aria-hidden="true">01</b> Açıklanabilir uyarı</span>
+                  <span><b aria-hidden="true">02</b> Kullanıcı kontrolü</span>
+                  <span><b aria-hidden="true">03</b> Otomatik yaptırım yok</span>
+                </div>
+              </header>
+
+              <div className="courtesy-workspace">
+                <form className="composer-card" onSubmit={handleCourtesyCheck}>
+                  <div className="composer-heading">
+                    <div>
+                      <p className="eyebrow">YENİ GÖNDERİ</p>
+                      <h2>Paylaşımınızı hazırlayın</h2>
+                    </div>
+                    <span>{courtesyText.length} / 5000</span>
+                  </div>
+                  <label htmlFor="courtesy-text">Gönderi metni</label>
+                  <textarea
+                    id="courtesy-text"
+                    maxLength={5000}
+                    onChange={(event) => {
+                      setCourtesyText(event.target.value);
+                      setCourtesyResult(null);
+                    }}
+                    required
+                    value={courtesyText}
+                  />
+                  <div className="composer-footer">
+                    <p>Kontrol yalnızca bu metin üzerinde çalışır.</p>
+                    <button type="submit" disabled={checkingCourtesy}>
+                      {checkingCourtesy ? "Kontrol ediliyor…" : "Nezaket kontrolü"}
+                    </button>
+                  </div>
+
+                  {courtesyResult && (
+                    <div className={`courtesy-result courtesy-result--${courtesyResult.level}`} role="status">
+                      <div className="courtesy-result__summary">
+                        <span className="courtesy-score">{Math.round(courtesyResult.risk_score)}</span>
+                        <p>
+                          <small>NEZAKET DEĞERLENDİRMESİ</small>
+                          <strong>
+                            {courtesyResult.should_warn
+                              ? courtesyResult.warning
+                              : "Belirgin bir nezaket riski bulunmadı."}
+                          </strong>
+                          <span>{courtesyResult.disclaimer}</span>
+                        </p>
+                      </div>
+                      {courtesyResult.matches.length > 0 && (
+                        <div className="match-list" aria-label="Açıklanan ifadeler">
+                          {courtesyResult.matches.map((match) => (
+                            <span key={match.canonical_form}>
+                              <b>{match.canonical_form}</b>{match.category}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="courtesy-actions">
+                        <button type="button" onClick={() => setCourtesyResult(null)}>Metni düzenle</button>
+                        <button
+                          type="button"
+                          onClick={() => setNotice("Kullanıcı tercihi korundu; demo gönderimi engellenmedi.")}
+                        >
+                          Yine de devam et
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </form>
+
+                <aside className="courtesy-guide" aria-label="Değerlendirme yaklaşımı">
+                  <p className="eyebrow">NASIL ÇALIŞIR?</p>
+                  <h2>Kararı sizin yerinize vermez.</h2>
+                  <ol>
+                    <li><span>1</span><div><strong>Metni çözümler</strong><p>Ayrık harfleri, sayı ile değiştirilmiş karakterleri ve görünmez işaretleri tanır.</p></div></li>
+                    <li><span>2</span><div><strong>Nedeni açıklar</strong><p>Uyarıya hangi ifadenin ve dönüşümün yol açtığını görünür kılar.</p></div></li>
+                    <li><span>3</span><div><strong>Seçimi size bırakır</strong><p>Düzenleyebilir veya uyarıyı gördükten sonra paylaşmaya devam edebilirsiniz.</p></div></li>
+                  </ol>
+                  <div className="privacy-note">
+                    <span aria-hidden="true">✓</span>
+                    <p><strong>Şeffaf varsayılan</strong>Metin engellenmez; kullanıcı kararı korunur.</p>
+                  </div>
+                </aside>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );
