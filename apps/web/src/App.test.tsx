@@ -58,6 +58,10 @@ describe("moderasyon merkezi", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "Koordinasyon adayı" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Ağ inceleme" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(screen.getByText("Eşzamanlılık")).toBeInTheDocument();
     expect(screen.getByText(/yaptırım otomatik uygulanmaz/i)).toBeInTheDocument();
   });
@@ -79,6 +83,10 @@ describe("moderasyon merkezi", () => {
     render(<App />);
 
     await screen.findByRole("heading", { name: "Koordinasyon adayı" });
+    await user.click(screen.getByRole("tab", { name: "Nezaket katmanı" }));
+    expect(
+      screen.getByRole("heading", { name: "Düşünün, düzenleyin, seçiminizi koruyun." }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Nezaket kontrolü" }));
 
     expect(await screen.findByText("kişiye yönelik aşağılama")).toBeInTheDocument();
