@@ -5,7 +5,7 @@ import math
 import re
 import unicodedata
 from collections import defaultdict
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from itertools import combinations
@@ -37,6 +37,8 @@ SIGNAL_WEIGHTS: dict[str, float] = {
     "density": 0.14,
     "deletion": 0.10,
 }
+
+SIGNAL_KEYS = tuple(SIGNAL_WEIGHTS)
 
 SIGNAL_LABELS: dict[str, str] = {
     "temporal": "Eşzamanlılık",
@@ -72,6 +74,7 @@ class CoordinationEngine:
         edge_threshold: float = 0.70,
         min_cluster_size: int = 3,
         min_alert_score: float = 55.0,
+        signal_weights: Mapping[str, float] | None = None,
     ) -> None:
         if window_seconds <= 0:
             raise ValueError("window_seconds must be positive")
@@ -86,6 +89,7 @@ class CoordinationEngine:
         self.edge_threshold = edge_threshold
         self.min_cluster_size = min_cluster_size
         self.min_alert_score = min_alert_score
+        self.signal_weights = _validate_signal_weights(signal_weights)
 
     def analyze(self, events: Sequence[SocialEvent]) -> list[CoordinationAlert]:
         ordered_events = sorted(
@@ -237,7 +241,7 @@ class CoordinationEngine:
             "deletion": deletion,
         }
         risk_score = round(
-            sum(signal_values[key] * weight for key, weight in SIGNAL_WEIGHTS.items()) * 100,
+            sum(signal_values[key] * self.signal_weights[key] for key in SIGNAL_KEYS) * 100,
             2,
         )
 
@@ -278,7 +282,10 @@ class CoordinationEngine:
             ),
             account_ids=ordered_accounts,
             event_ids=[event.event_id for event in ordered_events],
-            signals=[_signal_contribution(key, signal_values[key]) for key in SIGNAL_WEIGHTS],
+            signals=[
+                _signal_contribution(key, signal_values[key], self.signal_weights)
+                for key in SIGNAL_KEYS
+            ],
             targets=targets,
             graph=GraphEvidence(
                 node_count=len(component),
@@ -360,8 +367,47 @@ def _stable_alert_id(account_ids: Sequence[str], event_ids: Sequence[str]) -> st
     return f"alert_{hashlib.sha256(payload).hexdigest()[:16]}"
 
 
-def _signal_contribution(key: str, value: float) -> SignalContribution:
-    weight = SIGNAL_WEIGHTS[key]
+def _validate_signal_weights(
+    signal_weights: Mapping[str, float] | None,
+) -> dict[str, float]:
+    if signal_weights is None:
+        return dict(SIGNAL_WEIGHTS)
+
+    supplied_keys = set(signal_weights)
+    expected_keys = set(SIGNAL_KEYS)
+    if supplied_keys != expected_keys:
+        missing = sorted(expected_keys - supplied_keys)
+        unexpected = sorted(supplied_keys - expected_keys)
+        details = []
+        if missing:
+            details.append(f"missing={missing}")
+        if unexpected:
+            details.append(f"unexpected={unexpected}")
+        raise ValueError(
+            f"signal_weights must contain exactly the configured signals ({', '.join(details)})"
+        )
+
+    validated: dict[str, float] = {}
+    for key in SIGNAL_KEYS:
+        value = signal_weights[key]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise ValueError(f"signal weight for {key} must be a finite number")
+        numeric_value = float(value)
+        if not math.isfinite(numeric_value) or not 0.0 <= numeric_value <= 1.0:
+            raise ValueError(f"signal weight for {key} must be between zero and one")
+        validated[key] = numeric_value
+
+    if not math.isclose(sum(validated.values()), 1.0, rel_tol=0.0, abs_tol=1e-9):
+        raise ValueError("signal_weights must sum to one")
+    return validated
+
+
+def _signal_contribution(
+    key: str,
+    value: float,
+    signal_weights: Mapping[str, float],
+) -> SignalContribution:
+    weight = signal_weights[key]
     rounded_value = round(max(0.0, min(1.0, value)), 6)
     contribution = round(rounded_value * weight * 100, 2)
     explanations = {
