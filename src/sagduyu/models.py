@@ -86,7 +86,7 @@ class SignalContribution(BaseModel):
     key: str
     label: str
     value: float = Field(ge=0.0, le=1.0)
-    weight: float = Field(gt=0.0, le=1.0)
+    weight: float = Field(ge=0.0, le=1.0)
     contribution: float = Field(ge=0.0, le=100.0)
     explanation: str
 
