@@ -36,6 +36,10 @@ Hangi bileşenin ürün prototipine alındığı, yöntem olarak kabul edildiği
 ölçüm sonucunda reddedildiği [bileşen kabul matrisinde](docs/project/acceptance-matrix.md)
 açıklanır.
 
+Koordinasyon motorundaki açıklanabilir sinyallerin sonraki deneylerde nasıl
+değiştirileceği ve hangi koşulda gerçek başarı sonucu sayılacağı [sinyal ağırlığı
+duyarlılık deney sözleşmesinde](docs/project/signal-weight-experiment.md) tanımlıdır.
+
 Üç ana senaryoyu, gerekçeli kararı, nezaket uyarısını ve toplu gecikme özetini
 tek komutta doğrulayan akış [demo ve ölçüm kanıtında](docs/project/demo-evidence.md)
 yer alır.
