@@ -9,6 +9,8 @@ on:
       - "experiments/**"
       - "notebooks/**"
       - "configs/**"
+      - "compose.yml"
+      - ".env.example"
       - "pyproject.toml"
       - ".github/workflows/backend.yml"
   push:
@@ -21,6 +23,8 @@ on:
       - "experiments/**"
       - "notebooks/**"
       - "configs/**"
+      - "compose.yml"
+      - ".env.example"
       - "pyproject.toml"
       - ".github/workflows/backend.yml"
 
@@ -28,6 +32,17 @@ permissions:
   contents: read
 
 jobs:
+  compose-config:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Kaynak kodu al
+        uses: actions/checkout@v7
+
+      - name: Compose yapılandırmasını doğrula
+        run: docker compose --env-file .env.example config --quiet
+
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
