@@ -21,3 +21,21 @@ Neo4j yalnızca URI, kullanıcı adı ve parola birlikte sağlandığında etkin
 - Compose varsayılanları yerel geliştirme içindir ve production ortamında kullanılmamalıdır.
 - Production parolaları secret yöneticisinden sağlanmalıdır.
 - Public demo yalnızca sentetik veya açıkça yetkilendirilmiş veriyi kullanmalıdır.
+
+## Uzaktan pilot için geçiş koşulları
+
+Compose dosyası yerel geliştirme ve demo içindir; yayımlanan portlar yalnızca
+`127.0.0.1` üzerinden erişilir. Uzaktan erişilebilen bir pilot ortamına geçmeden
+önce aşağıdaki koşullar tamamlanmalıdır:
+
+- Moderatör ve servis erişimi için kimlik doğrulama ile rol bazlı yetkilendirme
+  tanımlanır.
+- Trafik TLS sonlandıran bir ters vekil üzerinden alınır; CORS yalnızca pilot
+  alan adıyla sınırlandırılır.
+- Üretim sırları, kalıcı veritabanı parolaları ve bağlantı bilgileri secret
+  yöneticisinden sağlanır.
+- Analiz uçları için istek boyutu, zaman aşımı ve hız sınırları pilot yüküne
+  göre yapılandırılır.
+
+Bu maddeler uzaktan pilot için bir geçiş kontrol listesidir; mevcut yerel
+prototipte tamamlanmış üretim özellikleri olarak yorumlanmamalıdır.
