@@ -18,6 +18,10 @@ Proje aktif geliştirme aşamasındadır. İlk hedef, koordineli manipülasyon t
 
 Sistem bileşenleri ve teknik sınırlar [mimari genel bakışta](docs/architecture/overview.md), veri kaynakları ve kullanım koşulları ise [veri kaynağı kaydında](docs/project/data-sources.md) açıklanır.
 
+Yerel prototipten uzaktan pilot ortamına geçmeden önce tamamlanması gereken
+güvenlik koşulları [kalıcılık mimarisinde](docs/architecture/persistence.md)
+listelenir.
+
 Model karşılaştırmalarında kullanılan ayrım, ölçüm ve sonuç yayınlama kuralları [değerlendirme protokolünde](docs/project/evaluation-protocol.md) tanımlıdır.
 
 Türkçe karakter maskelemesine karşı kullanılan kanonikleştirme adımları ve sınırları [metin normalizasyonu belgesinde](docs/project/text-normalization.md) açıklanır.
